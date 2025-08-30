@@ -13,6 +13,9 @@ import ConfirmBuys from "./components/producer/ConfirmBuys";
 import CreateSellRequest from "./components/producer/CreateSellRequest";
 import SellRequestDetailPage from "./components/buyer/SellRequestDetailPage";
 import Marketplace from "./components/buyer/MarketPlace";
+import AuditorDashboard from "./components/auditor/AuditorDashboard";
+import BuyerTransaction from "./components/buyer/BuyerTransaction";
+import BuyersLeaderboard from "./components/buyer/BuyersLeaderboard";
 // Example placeholders for dashboards
 
 function App() {
@@ -58,7 +61,7 @@ function App() {
               </ProtectedRoute>
             }
           /> */}
-          {/* <Route
+          <Route
             path="/auditor-dashboard"
             element={
               <ProtectedRoute>
@@ -66,7 +69,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+
+          {/* <Route
             path="/regulator-dashboard"
             element={
               <ProtectedRoute>
@@ -76,20 +80,13 @@ function App() {
           /> */}
 
           {/* Leaderboard example */}
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute>
-                <Leaderboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/leaderboard" element={<Leaderboard />} />
 
           <Route
-            path="/transaction"
+            path="/transactions"
             element={
               <ProtectedRoute>
-                <TransactionLog />
+                <BuyerTransaction />
               </ProtectedRoute>
             }
           />
@@ -115,6 +112,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Marketplace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/buyer-leaderboard"
+            element={
+              <ProtectedRoute>
+                <BuyersLeaderboard />
               </ProtectedRoute>
             }
           />

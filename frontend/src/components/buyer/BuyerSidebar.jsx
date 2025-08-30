@@ -20,7 +20,7 @@ const BuyerSidebar = () => {
   const navLinks = [
     { name: "Marketplace", icon: ShoppingCart, path: "/marketplace" },
     { name: "My Transactions", icon: LayoutDashboard, path: "/transactions" },
-    { name: "Leaderboard", icon: Trophy, path: "/leaderboard" },
+    { name: "Leaderboard", icon: Trophy, path: "/buyer-leaderboard" },
   ];
 
   return (

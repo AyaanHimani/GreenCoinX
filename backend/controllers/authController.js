@@ -7,10 +7,19 @@ module.exports = {
     try {
       const { name, company, username, password, role } = req.body;
 
+      // --- CORRECTION 1: Add input validation ---
+      if (!name || !username || !password || !role) {
+        return res.status(400).json({ msg: "Please provide all required fields." });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ msg: "Password must be at least 8 characters long." });
+      }
+
       const existing = await User.findOne({ username });
       if (existing) return res.status(400).json({ msg: "User already exists" });
 
-      const passwordHash = await bcrypt.hash(password, 10);
+      // --- CORRECTION 2: Increase salt rounds for better security ---
+      const passwordHash = await bcrypt.hash(password, 12);
 
       const user = new User({ name, company, username, passwordHash, role });
       await user.save();
@@ -25,6 +34,11 @@ module.exports = {
     try {
       const { username, password } = req.body;
 
+      // --- CORRECTION 1: Add input validation ---
+      if (!username || !password) {
+        return res.status(400).json({ msg: "Please provide username and password." });
+      }
+
       const user = await User.findOne({ username });
       if (!user) return res.status(400).json({ msg: "Invalid credentials" });
 
@@ -36,8 +50,15 @@ module.exports = {
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
       );
+
       res.cookie("jwt", token, { httpOnly: true, secure: true, sameSite: "none" });
-      res.json({ token, role: user.role });
+
+      res.json({
+        token,
+        role: user.role,
+        userId: user._id,
+        name: user.company,
+      });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }

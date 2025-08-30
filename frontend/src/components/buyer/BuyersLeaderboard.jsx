@@ -1,125 +1,178 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Trophy, Medal, Award, Globe, ChevronLeft, ChevronRight, Clock, TrendingUp, Users, ArrowRight, Crown, Star } from "lucide-react";
-import api from "../../../api/axios"; //axios instance
+import React, { useState, useEffect } from "react";
+import {
+  Award,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Crown,
+  Globe,
+  Medal,
+  Star,
+  TrendingUp,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const BuyersLeaderboard = ({ setCurrentView }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [timeUntilUpdate, setTimeUntilUpdate] = useState(12 * 60 * 60);
-  const itemsPerPage = 10;
+// --- Sub-components for better structure ---
 
-  const [buyersData, setBuyersData] = useState([]);
-  const leaderboardRef = useRef(null);
-  const headerRef = useRef(null);
+const StatCard = ({ icon, label, value }) => (
+  <div className="bg-white/60 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-emerald-100 flex items-center gap-4">
+    <div className="p-3 bg-emerald-100 rounded-full">{icon}</div>
+    <div>
+      <p className="text-sm text-gray-600">{label}</p>
+      <p className="text-2xl font-bold text-gray-800">{value}</p>
+    </div>
+  </div>
+);
 
-  // ✅ Fetch buyers
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get("api/leaderboard/buyers");
-        setBuyersData(res.data || []);
-      } catch (err) {
-        console.error("Error fetching buyers leaderboard:", err);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const totalPages = Math.ceil(buyersData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = buyersData.slice(startIndex, endIndex);
-
-  // Timer effect
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeUntilUpdate((prev) => (prev <= 1 ? 12 * 60 * 60 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Animations
-  useEffect(() => {
-    if (headerRef.current) {
-      headerRef.current.style.transform = "translateY(-30px)";
-      headerRef.current.style.opacity = "0";
-      setTimeout(() => {
-        headerRef.current.style.transition =
-          "all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)";
-        headerRef.current.style.transform = "translateY(0)";
-        headerRef.current.style.opacity = "1";
-      }, 200);
-    }
-
-    if (leaderboardRef.current) {
-      const items = leaderboardRef.current.children;
-      Array.from(items).forEach((item, index) => {
-        item.style.transform = "translateY(50px)";
-        item.style.opacity = "0";
-        setTimeout(() => {
-          item.style.transition = "all 0.6s ease-out";
-          item.style.transform = "translateY(0)";
-          item.style.opacity = "1";
-        }, 400 + index * 100);
-      });
-    }
-  }, [currentPage]);
-
-  // Helpers
-  const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const formatValue = (value) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-
-  const getRankPosition = (index) => startIndex + index + 1;
-
+const LeaderboardRow = ({ item, rank }) => {
   const getTrophyIcon = (rank) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="w-6 h-6 text-yellow-500" />;
-      case 2:
-        return <Medal className="w-6 h-6 text-gray-400" />;
-      case 3:
-        return <Award className="w-6 h-6 text-amber-600" />;
-      default:
-        return <span className="text-lg font-bold text-gray-500">#{rank}</span>;
-    }
+    if (rank === 1) return <Crown className="w-6 h-6 text-yellow-500" />;
+    if (rank === 2) return <Medal className="w-6 h-6 text-gray-400" />;
+    if (rank === 3) return <Award className="w-6 h-6 text-amber-600" />;
+    return (
+      <span className="text-lg font-bold text-gray-500 w-6 text-center">
+        #{rank}
+      </span>
+    );
   };
 
   const getRankStyling = (rank) => {
-    switch (rank) {
-      case 1:
-        return "bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-lg shadow-yellow-200/50";
-      case 2:
-        return "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 shadow-lg shadow-gray-200/50";
-      case 3:
-        return "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 shadow-lg shadow-amber-200/50";
-      default:
-        return "bg-white/80 border border-emerald-100 hover:border-emerald-200";
-    }
+    if (rank === 1)
+      return "bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-lg shadow-yellow-200/50";
+    if (rank === 2)
+      return "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 shadow-lg shadow-gray-200/50";
+    if (rank === 3)
+      return "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 shadow-lg shadow-amber-200/50";
+    return "bg-white/80 border-b border-emerald-100 hover:bg-emerald-50";
   };
 
   return (
-    <div className="relative z-10 min-h-screen px-6 py-12">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div ref={headerRef} className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Globe className="w-8 h-8 text-white" />
-            </div>
+    <div
+      className={`p-4 md:p-6 transition-all duration-300 ${getRankStyling(
+        rank
+      )}`}
+      style={{ transitionDelay: `${((rank - 1) % 10) * 50}ms` }}
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center space-x-4">
+          {getTrophyIcon(rank)}
+          <div>
+            <h3 className="font-bold text-gray-800">{item.name}</h3>
           </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div className="font-bold text-lg text-emerald-700">
+            {item.totalHydrogenPurchasedKg.toLocaleString()} Kg
+          </div>
+          <div className="text-sm font-medium text-gray-500">
+            ${item.totalSpentUSD.toLocaleString()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main Leaderboard Component ---
+const BuyersLeaderboard = ({ setCurrentView }) => {
+  const [buyersData, setBuyersData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [timeUntilUpdate, setTimeUntilUpdate] = useState(0); // Initialize at 0
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const itemsPerPage = 10;
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/leaderboard/buyers`);
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await res.json();
+        setBuyersData(data || []);
+      } catch (err) {
+        console.error("Error fetching buyers leaderboard:", err);
+        setError("Could not load leaderboard data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [API_BASE_URL]);
+
+  // --- CORRECTION: Absolute timer countdown to midnight ---
+  useEffect(() => {
+    const getSecondsUntilMidnight = () => {
+      const now = new Date();
+      const tomorrow = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0,
+        0,
+        0
+      );
+      const diffInSeconds = Math.round(
+        (tomorrow.getTime() - now.getTime()) / 1000
+      );
+      return diffInSeconds;
+    };
+
+    // Set the initial time immediately
+    setTimeUntilUpdate(getSecondsUntilMidnight());
+
+    const timer = setInterval(() => {
+      setTimeUntilUpdate((prev) => {
+        if (prev <= 1) {
+          // At midnight, reset to 24 hours
+          return 24 * 60 * 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Pagination logic
+  const totalPages = Math.ceil(buyersData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = buyersData.slice(startIndex, startIndex + itemsPerPage);
+  const navigate = useNavigate();
+  // Helper to format time
+  const formatTime = (seconds) => {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen px-4 py-12 md:px-6 bg-gray-50">
+      <div className="max-w-6xl mx-auto">
+        <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent mb-4">
             Buyer Leaderboard
           </h1>
@@ -135,97 +188,78 @@ const BuyersLeaderboard = ({ setCurrentView }) => {
               {formatTime(timeUntilUpdate)}
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/80 p-6 rounded-2xl shadow-lg border">
-            <Users className="w-8 h-8 text-emerald-600" />
-            <p className="text-sm text-gray-600">Total Buyers</p>
-            <p className="text-2xl font-bold">{buyersData.length}</p>
-          </div>
-          <div className="bg-white/80 p-6 rounded-2xl shadow-lg border">
-            <TrendingUp className="w-8 h-8 text-emerald-600" />
-            <p className="text-sm text-gray-600">Top Buyer Purchase</p>
-            <p className="text-2xl font-bold">
-              {buyersData[0]
-                ? `${buyersData[0].totalHydrogenPurchasedKg} Kg`
-                : "0 Kg"}
-            </p>
-          </div>
-          <div className="bg-white/80 p-6 rounded-2xl shadow-lg border">
-            <Star className="w-8 h-8 text-emerald-600" />
-            <p className="text-sm text-gray-600">Avg Spent (USD)</p>
-            <p className="text-2xl font-bold">
-              {(
-                buyersData.reduce((sum, d) => sum + (d.totalSpentUSD || 0), 0) /
-                (buyersData.length || 1)
-              ).toFixed(1)}
-            </p>
-          </div>
+          <StatCard
+            icon={<Users className="w-8 h-8 text-emerald-600" />}
+            label="Total Buyers"
+            value={buyersData.length}
+          />
+          <StatCard
+            icon={<TrendingUp className="w-8 h-8 text-emerald-600" />}
+            label="Top Buyer Purchase"
+            value={
+              buyersData[0]
+                ? `${buyersData[0].totalHydrogenPurchasedKg.toLocaleString()} Kg`
+                : "0 Kg"
+            }
+          />
+          <StatCard
+            icon={<Star className="w-8 h-8 text-emerald-600" />}
+            label="Avg. Spent"
+            value={`$${(
+              buyersData.reduce((sum, d) => sum + (d.totalSpentUSD || 0), 0) /
+              (buyersData.length || 1)
+            ).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          />
         </div>
 
-        {/* List */}
-        <div className="bg-white/80 rounded-2xl border shadow-xl overflow-hidden">
-          <div ref={leaderboardRef}>
-            {currentItems.map((item, index) => {
-              const rank = getRankPosition(index);
-              return (
-                <div
-                  key={item._id}
-                  className={`p-6 ${getRankStyling(rank)} border-b`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      {getTrophyIcon(rank)}
-                      <div>
-                        <h3 className="font-bold text-gray-800">{item.name}</h3>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg">
-                        {item.totalHydrogenPurchasedKg} Kg
-                      </div>
-                      <div className="text-sm font-medium px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-                        ${item.totalSpentUSD}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="bg-white/80 rounded-2xl border border-emerald-100 shadow-xl overflow-hidden animate-fade-in">
+          {currentItems.map((item, index) => (
+            <LeaderboardRow
+              key={item._id}
+              item={item}
+              rank={startIndex + index + 1}
+            />
+          ))}
         </div>
 
-        {/* Pagination */}
         <div className="mt-8 flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Showing {startIndex + 1}-{Math.min(endIndex, buyersData.length)} of{" "}
-            {buyersData.length}
+            Showing <strong>{startIndex + 1}</strong>-
+            <strong>
+              {Math.min(startIndex + itemsPerPage, buyersData.length)}
+            </strong>{" "}
+            of <strong>{buyersData.length}</strong>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
+              aria-label="Previous page"
+              className="p-2 rounded-md transition-colors bg-white border border-gray-200 enabled:hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ChevronLeft />
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            <span>{currentPage}</span>
+            <span className="font-medium text-gray-700">{currentPage}</span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
+              aria-label="Next page"
+              className="p-2 rounded-md transition-colors bg-white border border-gray-200 enabled:hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ChevronRight />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         <div className="mt-12 text-center">
           <button
-            onClick={() => setCurrentView("landing")}
-            className="px-6 py-3 bg-emerald-500 text-white rounded-xl shadow-lg"
+            onClick={() => navigate("/marketplace")}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:bg-emerald-700 transition-all duration-300 hover:scale-105"
           >
-            <ArrowRight className="w-5 h-5 rotate-180" />
+            <ArrowLeft className="w-5 h-5" />
             Back to Home
           </button>
         </div>
