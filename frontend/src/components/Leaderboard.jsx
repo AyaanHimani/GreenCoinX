@@ -15,6 +15,7 @@ import {
   Star,
 } from "lucide-react";
 import api from "../../api/axios"; // axios instance
+import { useNavigate } from "react-router-dom";
 
 const Leaderboard = ({ setCurrentView }) => {
   const [activeTab, setActiveTab] = useState("producers"); // 'producers' or 'buyers'
@@ -49,7 +50,7 @@ const Leaderboard = ({ setCurrentView }) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = currentData.slice(startIndex, endIndex);
-
+  const navigate = useNavigate();
   // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -235,8 +236,10 @@ const Leaderboard = ({ setCurrentView }) => {
                 </p>
                 <p className="text-2xl font-bold text-gray-800">
                   {(
-                    currentData.reduce((sum, d) => sum + (d.greenCoinsMinted || 0), 0) /
-                    (currentData.length || 1)
+                    currentData.reduce(
+                      (sum, d) => sum + (d.greenCoinsMinted || 0),
+                      0
+                    ) / (currentData.length || 1)
                   ).toFixed(1)}
                 </p>
               </div>
@@ -254,8 +257,12 @@ const Leaderboard = ({ setCurrentView }) => {
               return (
                 <div
                   key={item._id}
-                  className={`p-6 transition-all duration-300 hover:scale-[1.02] ${getRankStyling(rank)} ${
-                    index !== currentItems.length - 1 ? "border-b border-gray-100" : ""
+                  className={`p-6 transition-all duration-300 hover:scale-[1.02] ${getRankStyling(
+                    rank
+                  )} ${
+                    index !== currentItems.length - 1
+                      ? "border-b border-gray-100"
+                      : ""
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -273,16 +280,28 @@ const Leaderboard = ({ setCurrentView }) => {
                       </div>
 
                       <div>
-                        <h3 className={`font-bold ${isTopThree ? "text-lg" : "text-base"} text-gray-800`}>
+                        <h3
+                          className={`font-bold ${
+                            isTopThree ? "text-lg" : "text-base"
+                          } text-gray-800`}
+                        >
                           {item.name}
                         </h3>
-                        <p className="text-gray-600 text-sm">{item.company || "—"}</p>
+                        <p className="text-gray-600 text-sm">
+                          {item.company || "—"}
+                        </p>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className={`font-bold ${isTopThree ? "text-xl" : "text-lg"} text-gray-800 mb-1`}>
-                        {formatValue(item.totalHydrogenProducedKg || item.value || 0)}
+                      <div
+                        className={`font-bold ${
+                          isTopThree ? "text-xl" : "text-lg"
+                        } text-gray-800 mb-1`}
+                      >
+                        {formatValue(
+                          item.totalHydrogenProducedKg || item.value || 0
+                        )}
                       </div>
                       <div
                         className={`text-sm font-medium px-3 py-1 rounded-full ${
@@ -304,7 +323,8 @@ const Leaderboard = ({ setCurrentView }) => {
         {/* Pagination */}
         <div className="mt-8 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Showing {startIndex + 1}-{Math.min(endIndex, currentData.length)} of {currentData.length} {activeTab}
+            Showing {startIndex + 1}-{Math.min(endIndex, currentData.length)} of{" "}
+            {currentData.length} {activeTab}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -334,7 +354,9 @@ const Leaderboard = ({ setCurrentView }) => {
             })}
 
             <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className="p-2 rounded-lg border border-gray-200 bg-white/80 hover:bg-emerald-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:border-emerald-300"
             >
@@ -346,7 +368,7 @@ const Leaderboard = ({ setCurrentView }) => {
         {/* Back */}
         <div className="mt-12 text-center">
           <button
-            onClick={() => setCurrentView("landing")}
+            onClick={() => navigate("/")}
             className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <ArrowRight className="w-5 h-5 rotate-180" />

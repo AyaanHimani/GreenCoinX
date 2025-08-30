@@ -88,7 +88,7 @@ const LandingPage = () => {
             </button>
             <button
               className="px-6 py-2 border border-emerald-400 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50"
-              onClick={() => navigate("/guest")}
+              onClick={() => navigate("/leaderboard")}
             >
               View as Guest
             </button>
@@ -129,7 +129,7 @@ const LandingPage = () => {
                 className="px-4 py-2 border border-emerald-400 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  navigate("/guest");
+                  navigate("/leaderboard");
                 }}
               >
                 View as Guest
@@ -207,7 +207,7 @@ const LandingPage = () => {
       </main>
 
       {/* Footer CTA */}
-      <footer className="relative z-10 px-6 py-16 bg-gradient-to-r from-emerald-600 to-green-700 text-center">
+      {/* <footer className="relative z-10 px-6 py-16 bg-gradient-to-r from-emerald-600 to-green-700 text-center">
         <h3 className="text-3xl font-bold text-white mb-4">
           Ready to Join the Green Revolution?
         </h3>
@@ -231,7 +231,7 @@ const LandingPage = () => {
         <p className="mt-8 text-sm text-emerald-200">
           © {new Date().getFullYear()} GreenCoinX | HackOut’25
         </p>
-      </footer>
+      </footer> */}
     </div>
   );
 };
