@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const invoiceSchema = new mongoose.Schema({
   producerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -11,4 +11,7 @@ const invoiceSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-export const Invoice = mongoose.model("Invoice", invoiceSchema);
+const Invoice = mongoose.model("Invoice", invoiceSchema);
+
+module.exports = { Invoice };
+

@@ -1,11 +1,11 @@
-import { ProducerData } from "../models/ProducerData.js";
-import { uploadToIPFS } from "../utils/ipfs.js";
-import { mintGreenCoins } from "../utils/blockchain.js";
-import { lastIotData, resetIotBatch } from "../utils/iotSimulator.js";
-import { SellRequest } from "../models/SellRequest.js";
-import { User } from "../models/User.js";
-import { Invoice } from "../models/Invoice.js";
-import { TransactionLog } from "../models/TransactionLog.js";
+const { ProducerData } = require("../models/ProducerData");
+const { uploadToIPFS } = require("../utils/ipfs");
+const { mintGreenCoins } = require("../utils/blockchain");
+const { lastIotData, resetIotBatch } = require("../utils/iotSimulator");
+const { SellRequest } = require("../models/SellRequest");
+const { User } = require("../models/User");
+const { Invoice } = require("../models/Invoice");
+const { TransactionLog } = require("../models/TransactionLog");
 
 export const addTransactionLog = async (userId, type, points, reason, relatedTxn = null) => {
   // fetch last balance
@@ -289,4 +289,17 @@ export const getInvoices = async (req, res) => {
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
+};
+
+module.exports = {
+  addTransactionLog,
+  submitBatch,
+  getProducerStats,
+  createSellRequest,
+  confirmBuy,
+  getLeaderboard,
+  getProducerHistory,
+  getTransactionLogs,
+  getInvoices
+  // If you uncomment getProducerData, include it here too
 };

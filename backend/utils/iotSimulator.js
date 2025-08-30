@@ -1,9 +1,9 @@
 let hydrogenQty = 0;
 let powerConsumption = 0;
 
-export let lastIotData = null;
+let lastIotData = null;
 
-export function generateIotData() {
+function generateIotData() {
   const incrementHydrogen = Math.floor(Math.random() * 10) + 5;   // +5–15 kg
   const incrementPower = Math.floor(Math.random() * 50) + 20;     // +20–70 kWh
 
@@ -26,8 +26,14 @@ export function generateIotData() {
   return lastIotData;
 }
 
-export function resetIotBatch() {
+function resetIotBatch() {
   hydrogenQty = 0;
   powerConsumption = 0;
   lastIotData = null;
 }
+
+module.exports = {
+  lastIotData,
+  generateIotData,
+  resetIotBatch
+};

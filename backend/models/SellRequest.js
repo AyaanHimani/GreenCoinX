@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const sellRequestSchema = new mongoose.Schema({
   producerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -14,4 +14,6 @@ const sellRequestSchema = new mongoose.Schema({
 });
 
 
-export const SellRequest = mongoose.model("SellRequest", sellRequestSchema);
+const SellRequest = mongoose.model("SellRequest", sellRequestSchema);
+
+module.exports = { SellRequest };

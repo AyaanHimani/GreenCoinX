@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const producerDataSchema = new mongoose.Schema({
   producerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -15,4 +15,6 @@ const producerDataSchema = new mongoose.Schema({
 });
 
 
-export const ProducerData = mongoose.model("ProducerData", producerDataSchema);
+const ProducerData = mongoose.model("ProducerData", producerDataSchema);
+
+module.exports = { ProducerData };

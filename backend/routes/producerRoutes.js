@@ -1,8 +1,17 @@
-import express from "express";
-import { submitBatch, getProducerStats,
-    // getProducerData, 
-    createSellRequest, confirmBuy,getLeaderboard ,getInvoices,getProducerHistory,getTransactionLogs  } from "../controllers/producerController.js";
-import verifyToken from "../middlewares/AuthMiddleware.js";
+const express = require("express");
+const {
+  submitBatch,
+  getProducerStats,
+  // getProducerData,
+  createSellRequest,
+  confirmBuy,
+  getLeaderboard,
+  getInvoices,
+  getProducerHistory,
+  getTransactionLogs
+} = require("../controllers/producerController");
+
+const { protect: verifyToken } = require("../middlewares/AuthMiddleware");
 
 const router = express.Router();
 
@@ -15,4 +24,5 @@ router.put("/confirm-buy/:id", verifyToken, confirmBuy);
 router.get("/history", verifyToken, getProducerHistory); 
 router.get("/logs", verifyToken,getTransactionLogs);
 router.get("/invoices", getInvoices); 
-export default router;
+
+module.exports = router;

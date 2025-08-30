@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const transactionLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -10,4 +10,5 @@ const transactionLogSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-export const TransactionLog = mongoose.model("TransactionLog", transactionLogSchema);
+const TransactionLog = mongoose.model("TransactionLog", transactionLogSchema);
+module.exports = { TransactionLog };

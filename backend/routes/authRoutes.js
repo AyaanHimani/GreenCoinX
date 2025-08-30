@@ -1,10 +1,10 @@
-import express from "express";
-import { signup, login } from "../controllers/authController.js";
-import verifyToken from "../middlewares/AuthMiddleware.js";
+const express = require("express");
+const { signup, login } = require("../controllers/authController");
+const { protect: verifyToken } = require("../middlewares/AuthMiddleware");
 
 const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
 
-export default router;
+module.exports = router;

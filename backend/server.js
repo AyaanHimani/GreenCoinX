@@ -1,12 +1,12 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import { connectDB } from "./config/db.js";
-import { Server } from "socket.io";
-import http from "http";
-import producerRoutes from "./routes/producerRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
-import { generateIotData, lastIotData } from "./utils/iotSimulator.js";
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const { connectDB } = require("./config/db");
+const { Server } = require("socket.io");
+const http = require("http");
+const producerRoutes = require("./routes/producerRoutes");
+const authRoutes = require("./routes/authRoutes");
+const { generateIotData, lastIotData } = require("./utils/iotSimulator");
 
 dotenv.config();
 const app = express();
