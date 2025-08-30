@@ -6,6 +6,7 @@
     "start": "nodemon server.js"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -15,6 +16,15 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
-  }
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@nomiclabs/hardhat-web3": "^2.1.0",
+    "hardhat": "^3.0.3",
+    "nodemon": "^3.1.0",
+    "web3": "^1.10.4"
+  },
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

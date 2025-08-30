@@ -7,7 +7,6 @@ const http = require("http");
 const authRoutes = require("./routes/authRoutes.js");
 const producerRoutes = require("./routes/producerRoutes.js");
 // CORRECTED: Added imports for seller and regulator routes
-const sellerRoutes = require("./routes/sellerRoutes.js");
 const regulatorRoutes = require("./routes/regulatorRoutes.js");
 const leaderBoardRoutes = require("./routes/leaderBoardRoutes.js");
 const transactionRoutes = require("./routes/transactionsRoutes.js");
@@ -33,9 +32,9 @@ setInterval(() => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/producer", producerRoutes);
-app.use("/api/seller", sellerRoutes);
 app.use("/api/regulator", regulatorRoutes);
 app.use("/api/leaderboard", leaderBoardRoutes);
 app.use("/api/transactions", transactionRoutes);
+
 
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
