@@ -10,10 +10,10 @@ import RoleRedirect from "./components/RoleRedirect";
 import TransactionLog from "./components/producer/TransactionLog";
 import { Toaster } from "react-hot-toast";
 import ConfirmBuys from "./components/producer/ConfirmBuys";
+import CreateSellRequest from "./components/producer/CreateSellRequest";
+import SellRequestDetailPage from "./components/buyer/SellRequestDetailPage";
+import Marketplace from "./components/buyer/MarketPlace";
 // Example placeholders for dashboards
-const BuyerDashboard = () => <h1>Buyer Dashboard</h1>;
-const AuditorDashboard = () => <h1>Auditor Dashboard</h1>;
-const RegulatorDashboard = () => <h1>Regulator Dashboard</h1>;
 
 function App() {
   return (
@@ -50,15 +50,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/buyer-dashboard"
             element={
               <ProtectedRoute>
                 <BuyerDashboard />
               </ProtectedRoute>
             }
-          />
-          <Route
+          /> */}
+          {/* <Route
             path="/auditor-dashboard"
             element={
               <ProtectedRoute>
@@ -73,7 +73,7 @@ function App() {
                 <RegulatorDashboard />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           {/* Leaderboard example */}
           <Route
@@ -98,6 +98,31 @@ function App() {
             element={
               <ProtectedRoute>
                 <ConfirmBuys />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-sell"
+            element={
+              <ProtectedRoute>
+                <CreateSellRequest />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/marketplace"
+            element={
+              <ProtectedRoute>
+                <Marketplace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/marketplace/:id"
+            element={
+              <ProtectedRoute>
+                <SellRequestDetailPage />
               </ProtectedRoute>
             }
           />

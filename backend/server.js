@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// 🔥 IoT Simulation every 5 seconds
+// IoT Simulation every 5 seconds
 setInterval(() => {
   const data = generateIotData();
   io.emit("iotData", data);
@@ -28,5 +28,7 @@ setInterval(() => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/producer", producerRoutes);
+app.use("/api/seller", sellerRoutes);
+app.use("/api/regulator", regulatorRoutes);
 
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

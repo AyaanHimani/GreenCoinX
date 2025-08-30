@@ -246,7 +246,11 @@ const Producer = () => {
       icon: CheckSquare,
       action: () => navigate("/confirm-buys"),
     },
-    { label: "Create Sell Request", icon: PlusCircle, action: () => {} },
+    {
+      label: "Create Sell Request",
+      icon: PlusCircle,
+      action: () => navigate("/create-sell"),
+    },
   ];
 
   return (

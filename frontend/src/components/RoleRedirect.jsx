@@ -12,7 +12,7 @@ const RoleRedirect = () => {
     case "producer":
       return <Navigate to="/prod-dashboard" replace />;
     case "buyer":
-      return <Navigate to="/buyer-dashboard" replace />;
+      return <Navigate to="/marketplace" replace />;
     case "auditor":
       return <Navigate to="/auditor-dashboard" replace />;
     case "regulator":
