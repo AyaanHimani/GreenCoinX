@@ -24,7 +24,6 @@ By integrating **IPFS** for decentralized data storage and **Polygon blockchain*
 The initial functionality for the **Producer Dashboard** has been developed. You can use the following credentials to log in and explore the features.
 
 -   **Role:** Producer
--   **Username:** `producer_demo`
--   **Password:** `GreenHydrogen@2025`
+-   **Username:** `JohnDoe`
+-   **Password:** `1234`
 
-> **⚠️ Security Warning:** These credentials are for demonstration purposes **only**. This method of sharing credentials is not secure and should **never** be used in a production environment. Always manage user data responsibly with secure authentication practices.
