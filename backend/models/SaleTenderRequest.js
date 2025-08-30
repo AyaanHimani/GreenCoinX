@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// This is the correct variable name
 const saleTenderSchema = new mongoose.Schema({
   producerName: String,
   hydrogenQty: Number,
@@ -12,6 +13,9 @@ const saleTenderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-const saleTenderRequest = mongoose.model("SaleTender", sellTenderSchema);
+// 1. CORRECTED: Changed 'sellTenderSchema' to 'saleTenderSchema' to match the definition above.
+// 2. CORRECTED: Changed the model variable name to 'SellRequest' to match the export.
+const SellRequest = mongoose.model("SaleTender", saleTenderSchema);
 
+// This now correctly exports the 'SellRequest' model.
 module.exports = { SellRequest };

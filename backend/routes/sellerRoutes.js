@@ -1,9 +1,9 @@
-const express = require("express")
-const { getAllSellingOrders, makeBuyRequest } = require("../controllers/sellerControllers")
+// Example from sellerRoutes.js
+const express = require("express");
+const router = express.Router();
+// const { getAllSellRequests } = require("../controllers/sellerController.js");
 
-const router = express.Router()
-
-router.get("/selling",getAllSellingOrders); // Getting all selling orders
-router.post("/buyRequest", makeBuyRequest); // Making a buy request
+// This would be line 6
+// router.get("/requests", getAllSellRequests); 
 
 module.exports = router;

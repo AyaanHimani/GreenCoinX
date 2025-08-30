@@ -10,5 +10,8 @@ const buyerTransactionLogSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-const buyerTransactionLog = mongoose.model("BuyerTransactionLog", buyerTransactionLogSchema);
+// CORRECTED: Renamed this variable to match what you are exporting.
+const TransactionLog = mongoose.model("BuyerTransactionLog", buyerTransactionLogSchema);
+
+// This now correctly exports the 'TransactionLog' model.
 module.exports = { TransactionLog };

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
-const { User } = require("../models/User");
+const { User } = require("../models/User.js"); // Added .js for consistency
 
-export const protect = async (req, res, next) => {
+const protect = async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
@@ -13,10 +13,12 @@ export const protect = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select("-passwordHash");
       next();
     } catch (err) {
+      console.error(err); // It's good practice to log the actual error on the server
       res.status(401).json({ msg: "Not authorized, token failed" });
     }
   } else {
     res.status(401).json({ msg: "Not authorized, no token" });
   }
 };
+
 module.exports = { protect };

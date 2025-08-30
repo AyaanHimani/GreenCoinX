@@ -1,12 +1,15 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const { connectDB } = require("./config/db");
+const { connectDB } = require("./config/db.js");
 const { Server } = require("socket.io");
 const http = require("http");
-const producerRoutes = require("./routes/producerRoutes");
-const authRoutes = require("./routes/authRoutes");
-const { generateIotData, lastIotData } = require("./utils/iotSimulator");
+const authRoutes = require("./routes/authRoutes.js");
+const producerRoutes = require("./routes/producerRoutes.js");
+// CORRECTED: Added imports for seller and regulator routes
+const sellerRoutes = require("./routes/sellerRoutes.js");
+const regulatorRoutes = require("./routes/regulatorRoutes.js");
+const { generateIotData, lastIotData } = require("./utils/iotSimulator.js");
 
 dotenv.config();
 const app = express();
