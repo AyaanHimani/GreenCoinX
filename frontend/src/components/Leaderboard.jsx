@@ -14,293 +14,35 @@ import {
   Crown,
   Star,
 } from "lucide-react";
+import api from "../../api/axios"; // axios instance
 
 const Leaderboard = ({ setCurrentView }) => {
   const [activeTab, setActiveTab] = useState("producers"); // 'producers' or 'buyers'
   const [currentPage, setCurrentPage] = useState(1);
-  const [timeUntilUpdate, setTimeUntilUpdate] = useState(12 * 60 * 60); // 12 hours in seconds
+  const [timeUntilUpdate, setTimeUntilUpdate] = useState(12 * 60 * 60);
   const itemsPerPage = 10;
 
+  const [producersData, setProducersData] = useState([]);
+  const [buyersData, setBuyersData] = useState([]);
   const leaderboardRef = useRef(null);
   const headerRef = useRef(null);
 
-  // Dummy data for producers
-  const producersData = [
-    {
-      id: 1,
-      name: "GreenTech Solutions",
-      company: "GreenTech Industries",
-      value: 2847563,
-      change: "+12.5%",
-      avatar: "🏭",
-      location: "California, USA",
-    },
-    {
-      id: 2,
-      name: "HydroGenesis Corp",
-      company: "HydroGenesis LLC",
-      value: 2654321,
-      change: "+8.3%",
-      avatar: "⚡",
-      location: "Texas, USA",
-    },
-    {
-      id: 3,
-      name: "EcoFuel Dynamics",
-      company: "EcoFuel Industries",
-      value: 2234567,
-      change: "+15.7%",
-      avatar: "🌱",
-      location: "Germany",
-    },
-    {
-      id: 4,
-      name: "CleanEnergy Pro",
-      company: "CleanEnergy Corp",
-      value: 1987654,
-      change: "+6.2%",
-      avatar: "🔋",
-      location: "Japan",
-    },
-    {
-      id: 5,
-      name: "SolarHydro Ltd",
-      company: "SolarHydro Group",
-      value: 1876543,
-      change: "+4.8%",
-      avatar: "☀️",
-      location: "Australia",
-    },
-    {
-      id: 6,
-      name: "WindPower H2",
-      company: "WindPower Solutions",
-      value: 1654321,
-      change: "+9.1%",
-      avatar: "💨",
-      location: "Denmark",
-    },
-    {
-      id: 7,
-      name: "BioHydrogen Inc",
-      company: "BioHydrogen Corp",
-      value: 1543210,
-      change: "+7.4%",
-      avatar: "🧬",
-      location: "Canada",
-    },
-    {
-      id: 8,
-      name: "RenewableForce",
-      company: "RenewableForce Ltd",
-      value: 1432109,
-      change: "+5.9%",
-      avatar: "⚡",
-      location: "Norway",
-    },
-    {
-      id: 9,
-      name: "GreenFusion Energy",
-      company: "GreenFusion Group",
-      value: 1321098,
-      change: "+11.2%",
-      avatar: "🌿",
-      location: "Sweden",
-    },
-    {
-      id: 10,
-      name: "HydroPure Systems",
-      company: "HydroPure Inc",
-      value: 1210987,
-      change: "+3.6%",
-      avatar: "💧",
-      location: "Netherlands",
-    },
-    {
-      id: 11,
-      name: "EcoTech Innovations",
-      company: "EcoTech Corp",
-      value: 1109876,
-      change: "+8.7%",
-      avatar: "🔬",
-      location: "Finland",
-    },
-    {
-      id: 12,
-      name: "CleanHydro Ltd",
-      company: "CleanHydro Group",
-      value: 1098765,
-      change: "+6.8%",
-      avatar: "🏗️",
-      location: "Switzerland",
-    },
-    {
-      id: 13,
-      name: "SustainablePower",
-      company: "SustainablePower Inc",
-      value: 987654,
-      change: "+4.2%",
-      avatar: "🌍",
-      location: "Austria",
-    },
-    {
-      id: 14,
-      name: "GreenGrid Solutions",
-      company: "GreenGrid Corp",
-      value: 876543,
-      change: "+10.3%",
-      avatar: "⚡",
-      location: "Belgium",
-    },
-    {
-      id: 15,
-      name: "HydroMax Energy",
-      company: "HydroMax Ltd",
-      value: 765432,
-      change: "+2.1%",
-      avatar: "💪",
-      location: "France",
-    },
-  ];
-
-  // Dummy data for buyers
-  const buyersData = [
-    {
-      id: 1,
-      name: "Tesla Motors",
-      company: "Tesla Inc",
-      value: 3456789,
-      change: "+18.2%",
-      avatar: "🚗",
-      location: "California, USA",
-    },
-    {
-      id: 2,
-      name: "Amazon Logistics",
-      company: "Amazon Inc",
-      value: 3234567,
-      change: "+14.7%",
-      avatar: "📦",
-      location: "Seattle, USA",
-    },
-    {
-      id: 3,
-      name: "Toyota Hydrogen",
-      company: "Toyota Motor Corp",
-      value: 2987654,
-      change: "+16.4%",
-      avatar: "🚙",
-      location: "Japan",
-    },
-    {
-      id: 4,
-      name: "Shell Energy",
-      company: "Shell plc",
-      value: 2765432,
-      change: "+9.8%",
-      avatar: "⛽",
-      location: "Netherlands",
-    },
-    {
-      id: 5,
-      name: "BMW Group",
-      company: "BMW AG",
-      value: 2543210,
-      change: "+12.1%",
-      avatar: "🏎️",
-      location: "Germany",
-    },
-    {
-      id: 6,
-      name: "Hyundai Motors",
-      company: "Hyundai Group",
-      value: 2321098,
-      change: "+7.5%",
-      avatar: "🚗",
-      location: "South Korea",
-    },
-    {
-      id: 7,
-      name: "BP Hydrogen",
-      company: "BP plc",
-      value: 2198765,
-      change: "+13.9%",
-      avatar: "🛢️",
-      location: "UK",
-    },
-    {
-      id: 8,
-      name: "Volvo Trucks",
-      company: "Volvo Group",
-      value: 2076543,
-      change: "+6.3%",
-      avatar: "🚛",
-      location: "Sweden",
-    },
-    {
-      id: 9,
-      name: "Honda Motors",
-      company: "Honda Corp",
-      value: 1954321,
-      change: "+11.6%",
-      avatar: "🏍️",
-      location: "Japan",
-    },
-    {
-      id: 10,
-      name: "Mercedes-Benz",
-      company: "Daimler AG",
-      value: 1832109,
-      change: "+8.9%",
-      avatar: "🚗",
-      location: "Germany",
-    },
-    {
-      id: 11,
-      name: "Airbus Industries",
-      company: "Airbus SE",
-      value: 1709876,
-      change: "+15.2%",
-      avatar: "✈️",
-      location: "France",
-    },
-    {
-      id: 12,
-      name: "Siemens Energy",
-      company: "Siemens AG",
-      value: 1587654,
-      change: "+4.7%",
-      avatar: "⚡",
-      location: "Germany",
-    },
-    {
-      id: 13,
-      name: "General Electric",
-      company: "GE Company",
-      value: 1465432,
-      change: "+10.8%",
-      avatar: "🔧",
-      location: "USA",
-    },
-    {
-      id: 14,
-      name: "Rolls-Royce",
-      company: "Rolls-Royce plc",
-      value: 1343210,
-      change: "+7.1%",
-      avatar: "✈️",
-      location: "UK",
-    },
-    {
-      id: 15,
-      name: "Caterpillar Inc",
-      company: "Caterpillar Inc",
-      value: 1220987,
-      change: "+5.4%",
-      avatar: "🚜",
-      location: "USA",
-    },
-  ];
+  // ✅ Fetch producers & buyers from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [producersRes, buyersRes] = await Promise.all([
+          api.get("api/leaderboard/producers"),
+          api.get("api/leaderboard/buyers"),
+        ]);
+        setProducersData(producersRes.data || []);
+        setBuyersData(buyersRes.data || []);
+      } catch (err) {
+        console.error("Error fetching leaderboard:", err);
+      }
+    };
+    fetchData();
+  }, []);
 
   const currentData = activeTab === "producers" ? producersData : buyersData;
   const totalPages = Math.ceil(currentData.length / itemsPerPage);
@@ -308,21 +50,15 @@ const Leaderboard = ({ setCurrentView }) => {
   const endIndex = startIndex + itemsPerPage;
   const currentItems = currentData.slice(startIndex, endIndex);
 
-  // Timer effect for countdown
+  // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeUntilUpdate((prev) => {
-        if (prev <= 1) {
-          return 12 * 60 * 60; // Reset to 12 hours
-        }
-        return prev - 1;
-      });
+      setTimeUntilUpdate((prev) => (prev <= 1 ? 12 * 60 * 60 : prev - 1));
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
-  // Entry animations
+  // Animations
   useEffect(() => {
     if (headerRef.current) {
       headerRef.current.style.transform = "translateY(-30px)";
@@ -349,7 +85,7 @@ const Leaderboard = ({ setCurrentView }) => {
     }
   }, [activeTab, currentPage]);
 
-  // Format time remaining
+  // Helpers
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -359,22 +95,16 @@ const Leaderboard = ({ setCurrentView }) => {
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Format value
-  const formatValue = (value) => {
-    return new Intl.NumberFormat("en-US", {
+  const formatValue = (value) =>
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
-  };
 
-  // Get rank position (considering pagination)
-  const getRankPosition = (index) => {
-    return startIndex + index + 1;
-  };
+  const getRankPosition = (index) => startIndex + index + 1;
 
-  // Get trophy component for top 3
   const getTrophyIcon = (rank) => {
     switch (rank) {
       case 1:
@@ -388,7 +118,6 @@ const Leaderboard = ({ setCurrentView }) => {
     }
   };
 
-  // Get rank styling for top 3
   const getRankStyling = (rank) => {
     switch (rank) {
       case 1:
@@ -431,7 +160,7 @@ const Leaderboard = ({ setCurrentView }) => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tabs */}
         <div className="flex justify-center mb-8">
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-2 border border-emerald-100 shadow-lg">
             <div className="flex space-x-2">
@@ -467,7 +196,7 @@ const Leaderboard = ({ setCurrentView }) => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-emerald-100 shadow-lg">
             <div className="flex items-center space-x-3">
@@ -491,7 +220,7 @@ const Leaderboard = ({ setCurrentView }) => {
                   Top Performer
                 </p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {formatValue(currentData[0]?.value || 0)}
+                  {formatValue(currentData[0]?.totalHydrogenProducedKg || 0)}
                 </p>
               </div>
             </div>
@@ -502,15 +231,20 @@ const Leaderboard = ({ setCurrentView }) => {
               <Star className="w-8 h-8 text-emerald-600" />
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Average Growth
+                  Avg GreenCoins
                 </p>
-                <p className="text-2xl font-bold text-gray-800">+9.2%</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {(
+                    currentData.reduce((sum, d) => sum + (d.greenCoinsMinted || 0), 0) /
+                    (currentData.length || 1)
+                  ).toFixed(1)}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Leaderboard */}
+        {/* Leaderboard List */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl border border-emerald-100 shadow-xl overflow-hidden">
           <div ref={leaderboardRef} className="space-y-0">
             {currentItems.map((item, index) => {
@@ -519,18 +253,13 @@ const Leaderboard = ({ setCurrentView }) => {
 
               return (
                 <div
-                  key={item.id}
-                  className={`p-6 transition-all duration-300 hover:scale-[1.02] ${getRankStyling(
-                    rank
-                  )} ${
-                    index !== currentItems.length - 1
-                      ? "border-b border-gray-100"
-                      : ""
+                  key={item._id}
+                  className={`p-6 transition-all duration-300 hover:scale-[1.02] ${getRankStyling(rank)} ${
+                    index !== currentItems.length - 1 ? "border-b border-gray-100" : ""
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      {/* Rank */}
                       <div
                         className={`flex items-center justify-center w-12 h-12 rounded-xl ${
                           isTopThree ? "bg-white/50" : "bg-emerald-50"
@@ -539,60 +268,33 @@ const Leaderboard = ({ setCurrentView }) => {
                         {getTrophyIcon(rank)}
                       </div>
 
-                      {/* Avatar */}
                       <div className="w-14 h-14 bg-gradient-to-r from-emerald-100 to-green-100 rounded-xl flex items-center justify-center text-2xl shadow-md">
-                        {item.avatar}
+                        🌱
                       </div>
 
-                      {/* Info */}
                       <div>
-                        <h3
-                          className={`font-bold ${
-                            isTopThree ? "text-lg" : "text-base"
-                          } text-gray-800`}
-                        >
+                        <h3 className={`font-bold ${isTopThree ? "text-lg" : "text-base"} text-gray-800`}>
                           {item.name}
                         </h3>
-                        <p className="text-gray-600 text-sm">{item.company}</p>
-                        <p className="text-gray-500 text-xs flex items-center space-x-1">
-                          <Globe className="w-3 h-3" />
-                          <span>{item.location}</span>
-                        </p>
+                        <p className="text-gray-600 text-sm">{item.company || "—"}</p>
                       </div>
                     </div>
 
-                    {/* Value and Change */}
                     <div className="text-right">
-                      <div
-                        className={`font-bold ${
-                          isTopThree ? "text-xl" : "text-lg"
-                        } text-gray-800 mb-1`}
-                      >
-                        {formatValue(item.value)}
+                      <div className={`font-bold ${isTopThree ? "text-xl" : "text-lg"} text-gray-800 mb-1`}>
+                        {formatValue(item.totalHydrogenProducedKg || item.value || 0)}
                       </div>
                       <div
                         className={`text-sm font-medium px-3 py-1 rounded-full ${
-                          item.change.startsWith("+")
+                          item.greenCoinsMinted > 0
                             ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {item.change}
+                        {item.greenCoinsMinted} GC
                       </div>
                     </div>
                   </div>
-
-                  {/* Top 3 Special Effects */}
-                  {isTopThree && (
-                    <div className="mt-4 p-3 bg-white/30 rounded-lg">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Performance Bonus</span>
-                        <span className="font-semibold text-emerald-600">
-                          {rank === 1 ? "+50%" : rank === 2 ? "+30%" : "+20%"}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -602,8 +304,7 @@ const Leaderboard = ({ setCurrentView }) => {
         {/* Pagination */}
         <div className="mt-8 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Showing {startIndex + 1}-{Math.min(endIndex, currentData.length)} of{" "}
-            {currentData.length} {activeTab}
+            Showing {startIndex + 1}-{Math.min(endIndex, currentData.length)} of {currentData.length} {activeTab}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -633,9 +334,7 @@ const Leaderboard = ({ setCurrentView }) => {
             })}
 
             <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
               className="p-2 rounded-lg border border-gray-200 bg-white/80 hover:bg-emerald-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:border-emerald-300"
             >
@@ -644,7 +343,7 @@ const Leaderboard = ({ setCurrentView }) => {
           </div>
         </div>
 
-        {/* Back to Home */}
+        {/* Back */}
         <div className="mt-12 text-center">
           <button
             onClick={() => setCurrentView("landing")}

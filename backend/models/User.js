@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   companyRegNo: String,
   username: { type: String, unique: true },
   passwordHash: String,
-  role: { type: String, enum: ["producer", "buyer", "regulator"], required: true },
+  role: { type: String, enum: ["producer", "buyer", "regulator", "auditor"], required: true },
   credits: { type: Number, default: 0 },  // green credits
   isBlacklisted: { type: Boolean, default: false },
   carbonFootprinting: Number,

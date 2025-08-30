@@ -10,6 +10,6 @@ const productionDataSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-const ProductionData = mongoose.model("ProducatioData", productionDataSchema);
+const ProductionData = mongoose.model("ProductionData", productionDataSchema);
 
 module.exports = { ProductionData };
