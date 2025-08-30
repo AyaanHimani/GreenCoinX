@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Trophy, Medal, Award, Globe, ChevronLeft, ChevronRight, Clock, TrendingUp, Users, ArrowRight, Crown, Star } from "lucide-react";
-import api from "../../api/axios"; // axios instance
+import api from "../../../api/axios"; //axios instance
 
 const BuyersLeaderboard = ({ setCurrentView }) => {
   const [currentPage, setCurrentPage] = useState(1);
