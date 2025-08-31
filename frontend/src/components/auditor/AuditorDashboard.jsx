@@ -1,24 +1,97 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-// --- Helper Components ---
-const LoadingSpinner = ({ fullScreen = false }) => (
-  <div
-    className={`flex justify-center items-center ${
-      fullScreen ? "w-full h-screen" : "p-8"
-    }`}
-  >
-    <div className="w-12 h-12 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin"></div>
-  </div>
-);
+// Mock data (unchanged)
+const mockCompanies = [
+  {
+    id: 1,
+    name: "GreenTech Industries",
+    role: "Producer",
+    registered: "2023-01-15",
+    contact: "contact@greentech.com",
+    flagged: false,
+    totalProduction: 15420,
+    totalPurchases: 8930,
+    transactions: [
+      {
+        id: 1,
+        date: "2024-08-28",
+        type: "Production",
+        amount: 500,
+        unit: "kg",
+      },
+      { id: 2, date: "2024-08-27", type: "Sale", amount: 300, unit: "kg" },
+      {
+        id: 3,
+        date: "2024-08-26",
+        type: "Production",
+        amount: 750,
+        unit: "kg",
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: "EcoRetail Corp",
+    role: "Buyer",
+    registered: "2023-03-22",
+    contact: "orders@ecoretail.com",
+    flagged: false,
+    totalProduction: 0,
+    totalPurchases: 12450,
+    transactions: [
+      { id: 4, date: "2024-08-28", type: "Purchase", amount: 300, unit: "kg" },
+      { id: 5, date: "2024-08-26", type: "Purchase", amount: 450, unit: "kg" },
+    ],
+  },
+  {
+    id: 3,
+    name: "Sustainable Solutions",
+    role: "Producer",
+    registered: "2022-11-08",
+    contact: "info@sustainable.com",
+    flagged: true,
+    totalProduction: 22100,
+    totalPurchases: 5600,
+    transactions: [
+      {
+        id: 6,
+        date: "2024-08-29",
+        type: "Production",
+        amount: 1200,
+        unit: "kg",
+      },
+      { id: 7, date: "2024-08-28", type: "Sale", amount: 800, unit: "kg" },
+    ],
+  },
+  {
+    id: 4,
+    name: "Clean Energy Co",
+    role: "Producer",
+    registered: "2023-07-10",
+    contact: "hello@cleanenergy.com",
+    flagged: false,
+    totalProduction: 18750,
+    totalPurchases: 3200,
+    transactions: [
+      {
+        id: 8,
+        date: "2024-08-29",
+        type: "Production",
+        amount: 600,
+        unit: "kg",
+      },
+      {
+        id: 9,
+        date: "2024-08-27",
+        type: "Production",
+        amount: 900,
+        unit: "kg",
+      },
+    ],
+  },
+].sort((a, b) => a.name.localeCompare(b.name)); // Pre-sorted A-Z
 
-const ErrorMessage = ({ message }) => (
-  <div className="p-4 m-4 text-center text-red-700 bg-red-100 border border-red-300 rounded-lg">
-    <p className="font-bold">An Error Occurred</p>
-    <p>{message}</p>
-  </div>
-);
-
-// --- Icons ---
+// Icons (unchanged)
 const ProductionIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -112,24 +185,27 @@ const SearchIcon = () => (
   </svg>
 );
 
-// --- Sub-components ---
-const StatCard = ({ title, value, unit, icon }) => (
-  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-    <div className="flex items-center">
-      <div className="p-2 mr-4 text-green-600 bg-green-100 rounded-full">
-        {icon}
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {value.toLocaleString()}{" "}
-          <span className="text-base font-normal text-gray-600">{unit}</span>
-        </p>
+// StatCard Component (Light Theme)
+const StatCard = ({ title, value, unit, icon }) => {
+  return (
+    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+      <div className="flex items-center">
+        <div className="p-2 mr-4 text-green-600 bg-green-100 rounded-full">
+          {icon}
+        </div>
+        <div>
+          <p className="text-sm text-gray-500">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {value.toLocaleString()}{" "}
+            <span className="text-base font-normal text-gray-600">{unit}</span>
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
+// CompanyList Component (with Filter UI and Light Theme)
 const CompanyList = ({
   companies,
   onSelect,
@@ -142,8 +218,8 @@ const CompanyList = ({
   const filteredCompanies = companies
     .filter((c) => {
       if (filter === "All") return true;
-      if (filter === "Producers") return c.role === "producer";
-      if (filter === "Buyers") return c.role === "buyer";
+      if (filter === "Producers") return c.role === "Producer";
+      if (filter === "Buyers") return c.role === "Buyer";
       return true;
     })
     .filter((c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -188,10 +264,10 @@ const CompanyList = ({
       <div className="flex-1 overflow-y-auto">
         {filteredCompanies.map((company) => (
           <div
-            key={company._id}
+            key={company.id}
             onClick={() => onSelect(company)}
             className={`flex items-center justify-between p-4 cursor-pointer transition-colors duration-200 border-b border-gray-200/50 ${
-              selectedCompany?._id === company._id
+              selectedCompany?.id === company.id
                 ? "bg-green-50 border-l-4 border-l-green-500"
                 : "hover:bg-gray-50"
             }`}
@@ -201,8 +277,8 @@ const CompanyList = ({
                 {company.name}
               </p>
               <p
-                className={`text-xs capitalize ${
-                  company.role === "producer"
+                className={`text-xs ${
+                  company.role === "Producer"
                     ? "text-green-600"
                     : "text-blue-600"
                 }`}
@@ -227,14 +303,8 @@ const CompanyList = ({
   );
 };
 
-const CompanyDetails = ({ company, onFlag, onBack, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center w-full h-full bg-gray-50">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+// CompanyDetails Component (Light Theme)
+const CompanyDetails = ({ company, onFlag, onBack }) => {
   if (!company) {
     return (
       <div className="flex items-center justify-center w-full h-full bg-gray-50">
@@ -261,16 +331,13 @@ const CompanyDetails = ({ company, onFlag, onBack, isLoading }) => {
               {company.name}
             </h1>
             <p className="text-sm md:text-base text-gray-500 truncate">
-              Registered on{" "}
-              {company.registered
-                ? new Date(company.registered).toLocaleDateString()
-                : "N/A"}
+              Registered on {company.registered} • {company.contact}
             </p>
           </div>
         </div>
-        {company.role === "producer" && (
+        {company.role === "Producer" && (
           <button
-            onClick={() => onFlag(company._id)}
+            onClick={() => onFlag(company.id)}
             disabled={company.flagged}
             className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md shadow-sm transition-all duration-300 ease-in-out hover:bg-red-700 hover:scale-105 active:scale-95 disabled:bg-red-800/50 disabled:cursor-not-allowed disabled:scale-100 w-full md:w-auto"
           >
@@ -279,145 +346,147 @@ const CompanyDetails = ({ company, onFlag, onBack, isLoading }) => {
           </button>
         )}
       </div>
+
       <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 md:gap-6 md:mb-8">
         <StatCard
           title="Total Production"
-          value={company.totalProduction || 0}
+          value={company.totalProduction}
           unit="kg"
           icon={<ProductionIcon />}
         />
         <StatCard
           title="Total Purchases"
-          value={company.totalPurchases || 0}
+          value={company.totalPurchases}
           unit="kg"
           icon={<PurchaseIcon />}
         />
       </div>
+
       <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
         <h3 className="text-lg md:text-xl font-bold text-green-800 mb-4">
           Recent Transactions
         </h3>
-        {/* Transaction Table/Cards Here */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  Date
+                </th>
+                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  Type
+                </th>
+                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  Amount
+                </th>
+                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  Unit
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {company.transactions.map((transaction) => (
+                <tr
+                  key={transaction.id}
+                  className="border-b border-gray-200/50 hover:bg-gray-50"
+                >
+                  <td className="py-3 px-4 text-gray-700">
+                    {transaction.date}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        transaction.type === "Production"
+                          ? "bg-green-100 text-green-700"
+                          : transaction.type === "Purchase"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-orange-100 text-orange-700"
+                      }`}
+                    >
+                      {transaction.type}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-800 font-medium">
+                    {transaction.amount.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">
+                    {transaction.unit}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="md:hidden space-y-3">
+          {company.transactions.map((transaction) => (
+            <div
+              key={transaction.id}
+              className="bg-gray-50 border border-gray-200 rounded-lg p-4"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    transaction.type === "Production"
+                      ? "bg-green-100 text-green-700"
+                      : transaction.type === "Purchase"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  {transaction.type}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {transaction.date}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-gray-900">
+                  {transaction.amount.toLocaleString()}
+                </span>
+                <span className="text-gray-600">{transaction.unit}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {company.transactions.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            No transactions found
+          </div>
+        )}
       </div>
     </main>
   );
 };
 
-// --- Main Dashboard Component ---
+// Main Dashboard Component (with Filter state)
 const AuditorDashboard = () => {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [filter, setFilter] = useState("All");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [filter, setFilter] = useState("All"); // <-- New state for the filter
 
   useEffect(() => {
-    const fetchCompanies = async () => {
-      setLoading(true);
-      setError(null);
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Authentication required.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/users`, {
-          // Assumes GET /api/users endpoint
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch company list.");
-
-        let data = await res.json();
-        data = data.sort((a, b) => a.name.localeCompare(b.name));
-        setCompanies(data);
-
-        if (window.innerWidth >= 768 && data.length > 0) {
-          handleSelectCompany(data[0]);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCompanies();
-  }, [API_BASE_URL]);
-
-  const handleSelectCompany = async (company) => {
-    setSelectedCompany({
-      ...company,
-      transactions: [],
-      totalProduction: 0,
-      totalPurchases: 0,
-    });
-    setDetailsLoading(true);
-
-    const token = localStorage.getItem("token");
-    const headers = { Authorization: `Bearer ${token}` };
-    const entityName = company.name; // Your API uses the name as the parameter
-
-    try {
-      const rolePath = company.role.toLowerCase();
-
-      const [summaryRes, transactionsRes] = await Promise.all([
-        fetch(
-          `${API_BASE_URL}/api/transactions/buyer${rolePath}/${entityName}/summary`,
-          { headers }
-        ),
-        fetch(
-          `${API_BASE_URL}/api/transactions/buyer${rolePath}/${entityName}`,
-          {
-            headers,
-          }
-        ),
-      ]);
-
-      if (!summaryRes.ok || !transactionsRes.ok) {
-        throw new Error(`Failed to fetch details for ${entityName}`);
-      }
-
-      const summaryData = await summaryRes.json();
-      const transactionsData = await transactionsRes.json();
-
-      setSelectedCompany({
-        ...company,
-        totalProduction:
-          summaryData.totalHydrogenSold ||
-          summaryData.totalHydrogenPurchased ||
-          0,
-        totalPurchases: summaryData.totalHydrogenPurchased || 0,
-        transactions: transactionsData,
-      });
-    } catch (err) {
-      console.error(err);
-      setSelectedCompany(company); // Revert to basic info on error
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
-
-  const handleFlagCompany = async (companyId) => {
-    // This needs a backend endpoint, e.g., PUT /api/users/:id/flag
-    const token = localStorage.getItem("token");
-    // Example: await fetch(`${API_BASE_URL}/api/users/${companyId}/flag`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
-
-    setCompanies((prev) =>
-      prev.map((c) => (c._id === companyId ? { ...c, flagged: true } : c))
+    const sortedCompanies = mockCompanies.sort((a, b) =>
+      a.name.localeCompare(b.name)
     );
-    if (selectedCompany?._id === companyId) {
+    setCompanies(sortedCompanies);
+    if (window.innerWidth >= 768 && sortedCompanies.length > 0) {
+      setSelectedCompany(sortedCompanies[0]);
+    }
+  }, []);
+
+  const handleSelectCompany = (company) => setSelectedCompany(company);
+
+  const handleFlagCompany = (companyId) => {
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === companyId ? { ...c, flagged: true } : c))
+    );
+    if (selectedCompany?.id === companyId) {
       setSelectedCompany((prev) => ({ ...prev, flagged: true }));
     }
   };
 
   const handleBackToList = () => setSelectedCompany(null);
   const handleFilterChange = (newFilter) => setFilter(newFilter);
-
-  if (loading) return <LoadingSpinner fullScreen />;
-  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="flex w-full h-screen text-gray-800 bg-white">
@@ -443,7 +512,6 @@ const AuditorDashboard = () => {
           company={selectedCompany}
           onFlag={handleFlagCompany}
           onBack={handleBackToList}
-          isLoading={detailsLoading}
         />
       </div>
     </div>

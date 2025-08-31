@@ -13,7 +13,7 @@ const {
 const { protect: verifyToken } = require("../middlewares/AuthMiddleware");
 
 // Regulator / All
-router.get("/", verifyToken, getAllTransactions);
+router.get("/", getAllTransactions);
 
 // Buyer perspective
 router.get("/buyer/:buyerName", verifyToken, getBuyerTransactions);
