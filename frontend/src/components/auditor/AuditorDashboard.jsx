@@ -91,7 +91,7 @@ const mockCompanies = [
   },
 ].sort((a, b) => a.name.localeCompare(b.name)); // Pre-sorted A-Z
 
-// Icons (unchanged)
+// Icons (LogoutIcon added)
 const ProductionIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -185,7 +185,25 @@ const SearchIcon = () => (
   </svg>
 );
 
-// StatCard Component (Light Theme)
+// New Logout Icon
+const LogoutIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-6 h-6"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+    />
+  </svg>
+);
+
+// StatCard Component (unchanged)
 const StatCard = ({ title, value, unit, icon }) => {
   return (
     <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
@@ -205,7 +223,7 @@ const StatCard = ({ title, value, unit, icon }) => {
   );
 };
 
-// CompanyList Component (with Filter UI and Light Theme)
+// CompanyList Component (Updated with Logout Button)
 const CompanyList = ({
   companies,
   onSelect,
@@ -237,13 +255,28 @@ const CompanyList = ({
     </button>
   );
 
+  const handleLogout = () => {
+    // Replace this with your actual logout logic
+    alert("Logout button clicked!");
+  };
+
   return (
     <aside className="flex flex-col w-full h-full bg-white border-r border-gray-200">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-green-800">
-          Registered Companies
-        </h2>
-        <div className="relative mt-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-green-800">
+            Registered Companies
+          </h2>
+          <button
+            onClick={handleLogout}
+            className="p-2 text-gray-500 rounded-full hover:bg-gray-200 hover:text-gray-800 transition-colors"
+            aria-label="Logout"
+            title="Logout"
+          >
+            <LogoutIcon />
+          </button>
+        </div>
+        <div className="relative">
           <input
             type="text"
             placeholder="Search companies..."
@@ -303,7 +336,7 @@ const CompanyList = ({
   );
 };
 
-// CompanyDetails Component (Light Theme)
+// CompanyDetails Component (unchanged)
 const CompanyDetails = ({ company, onFlag, onBack }) => {
   if (!company) {
     return (
@@ -458,11 +491,11 @@ const CompanyDetails = ({ company, onFlag, onBack }) => {
   );
 };
 
-// Main Dashboard Component (with Filter state)
+// Main Dashboard Component (unchanged)
 const AuditorDashboard = () => {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [filter, setFilter] = useState("All"); // <-- New state for the filter
+  const [filter, setFilter] = useState("All");
 
   useEffect(() => {
     const sortedCompanies = mockCompanies.sort((a, b) =>

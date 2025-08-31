@@ -21,12 +21,8 @@ import {
   TrendingUp,
   Activity,
   Send,
-  RotateCcw,
   Wifi,
   WifiOff,
-  Clock,
-  AlertCircle,
-  ArrowRight,
   Menu,
   X,
   User,
@@ -48,24 +44,17 @@ const Producer = () => {
   const [avgHydrogen, setAvgHydrogen] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmission, setLastSubmission] = useState(null);
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
-
-  const dashboardRef = useRef(null);
-  const metricsRef = useRef(null);
-  const chartRef = useRef(null);
   const navigate = useNavigate();
 
-  // Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     window.location.reload();
   };
 
-  // Close profile dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -76,7 +65,6 @@ const Producer = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Connect socket
   useEffect(() => {
     const token = localStorage.getItem("token");
     const socket = io(SOCKET_URL, {
@@ -84,15 +72,8 @@ const Producer = () => {
       transports: ["websocket"],
     });
 
-    socket.on("connect", () => {
-      setIsConnected(true);
-      console.log("✅ Connected to socket server");
-    });
-
-    socket.on("disconnect", () => {
-      setIsConnected(false);
-      console.log("❌ Disconnected from socket server");
-    });
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
 
     socket.on("iotData", (newData) => {
       setIotData(newData);
@@ -100,7 +81,11 @@ const Producer = () => {
         const updated = [
           ...prev,
           {
-            time: new Date(newData.timestamp).toLocaleTimeString(),
+            time: new Date(newData.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            }),
             hydrogenQty: parseFloat(newData.hydrogenQty),
             purity: parseFloat(newData.purity),
             renewableShare: parseFloat(newData.renewableShare),
@@ -112,12 +97,9 @@ const Producer = () => {
       });
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, []);
 
-  // Fetch GCX summary
   useEffect(() => {
     const fetchSummary = async () => {
       try {
@@ -127,8 +109,6 @@ const Producer = () => {
           `${API_URL}/api/transactions/producer/${producerName}/summary`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        console.log("Fetching GCX summary for", producerName);
-        console.log("GCX Summary:", res.data);
         setWalletBalance({ gcx: res.data.totalGreenCoins || 0 });
       } catch (err) {
         console.error("Error fetching GCX summary:", err);
@@ -137,7 +117,6 @@ const Producer = () => {
     fetchSummary();
   }, []);
 
-  // Compute Avg Hydrogen
   useEffect(() => {
     if (chartData.length > 0) {
       const avg =
@@ -147,7 +126,6 @@ const Producer = () => {
     }
   }, [chartData]);
 
-  // Submit Batch
   const handleSubmitBatch = async () => {
     if (!iotData) return;
     setIsSubmitting(true);
@@ -160,7 +138,7 @@ const Producer = () => {
       );
       setLastSubmission(new Date());
       setChartData([]);
-      navigate("/create-sell"); // ✅ Redirect
+      navigate("/create-sell");
     } catch (error) {
       console.error("Submission failed:", error?.response?.data || error);
     } finally {
@@ -217,29 +195,44 @@ const Producer = () => {
   ];
 
   const navLinks = [
-    { label: "Leaderboard", icon: Trophy, action: () => navigate("leaderboard") },
-    { label: "Transaction Logs", icon: FileText, action: () => navigate("/transaction") },
-    { label: "Confirm Buys", icon: CheckSquare, action: () => navigate("/confirm-buys") },
-    { label: "Create Sell Request", icon: PlusCircle, action: () => navigate("/create-sell") },
+    {
+      label: "Leaderboard",
+      icon: Trophy,
+      action: () => navigate("/leaderboard"),
+    },
+    {
+      label: "Transaction Logs",
+      icon: FileText,
+      action: () => navigate("/transaction"),
+    },
+    {
+      label: "Confirm Buys",
+      icon: CheckSquare,
+      action: () => navigate("/confirm-buys"),
+    },
+    {
+      label: "Create Sell Request",
+      icon: PlusCircle,
+      action: () => navigate("/create-sell"),
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
-      {/* Navigation */}
+      {/* --- NAVIGATION (Restored) --- */}
       <nav className="bg-white/80 backdrop-blur-lg border-b border-emerald-100 shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center">
               <Leaf className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">Producer Dashboard</h1>
+              <h1 className="text-xl font-bold text-gray-800">
+                Producer Dashboard
+              </h1>
               <p className="text-xs text-gray-500">GreenCoinX Platform</p>
             </div>
           </div>
-
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => (
               <button
@@ -252,10 +245,7 @@ const Producer = () => {
               </button>
             ))}
           </div>
-
-          {/* Wallet + Profile */}
           <div className="flex items-center space-x-4">
-            {/* GCX Wallet */}
             <div className="hidden lg:flex items-center">
               <div className="bg-white/90 rounded-xl p-3 border border-emerald-100 shadow-md flex items-center space-x-3">
                 <Wallet className="w-5 h-5 text-emerald-600" />
@@ -267,8 +257,6 @@ const Producer = () => {
                 </div>
               </div>
             </div>
-
-            {/* Profile */}
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -288,20 +276,20 @@ const Producer = () => {
                 </div>
               )}
             </div>
-
-            {/* Mobile Menu */}
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-gray-600 hover:text-emerald-600"
               >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden mt-4 pt-4 border-t border-gray-200 px-4">
             {navLinks.map((link) => (
@@ -328,9 +316,8 @@ const Producer = () => {
         )}
       </nav>
 
-      {/* Main Dashboard */}
-      <div ref={dashboardRef} className="max-w-7xl mx-auto px-6 py-8">
-        {/* Status */}
+      {/* --- MAIN DASHBOARD --- */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-6">
           <div
             className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${
@@ -339,24 +326,26 @@ const Producer = () => {
                 : "bg-red-100 text-red-700 border border-red-200"
             }`}
           >
-            {isConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+            {isConnected ? (
+              <Wifi className="w-4 h-4" />
+            ) : (
+              <WifiOff className="w-4 h-4" />
+            )}
             <span>
               {isConnected ? "IoT Device Connected" : "IoT Device Disconnected"}
             </span>
           </div>
         </div>
 
-        {/* Metric Cards */}
-        <div
-          ref={metricsRef}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {metrics.map((metric) => {
             const IconComponent = metric.icon;
             return (
               <div
                 key={metric.key}
-                className={`bg-gradient-to-br ${metric.bgColor} rounded-2xl p-6 border shadow-lg hover:scale-105 cursor-pointer ${
+                className={`bg-gradient-to-br ${
+                  metric.bgColor
+                } rounded-2xl p-6 border shadow-lg hover:scale-105 cursor-pointer ${
                   activeMetric === metric.key ? "ring-2 ring-emerald-500" : ""
                 }`}
                 onClick={() => setActiveMetric(metric.key)}
@@ -382,9 +371,60 @@ const Producer = () => {
           })}
         </div>
 
-        {/* Submit Batch */}
+        {/* --- GRAPH/CHART SECTION (Restored) --- */}
+        <section className="bg-white/80 backdrop-blur-lg rounded-2xl border border-emerald-100 shadow-xl p-6 mb-8">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">
+            Live Performance:{" "}
+            <span className="text-emerald-600">
+              {metrics.find((m) => m.key === activeMetric)?.label}
+            </span>
+          </h3>
+          {chartData.length > 0 ? (
+            <div style={{ width: "100%", height: 400 }}>
+              <ResponsiveContainer>
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis dataKey="time" stroke="#9ca3af" fontSize={12} />
+                  <YAxis stroke="#9ca3af" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      backdropFilter: "blur(5px)",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0.75rem",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey={activeMetric}
+                    stroke="#059669"
+                    fillOpacity={1}
+                    fill="url(#chartColor)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-96 flex items-center justify-center text-gray-500">
+              Waiting for IoT data to populate the graph...
+            </div>
+          )}
+        </section>
+
+        {/* --- BATCH OPERATIONS (Restored) --- */}
         <div className="bg-white/80 rounded-2xl p-6 border shadow-xl">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">Batch Operations</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">
+            Batch Operations
+          </h3>
           {lastSubmission && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4">
               <span className="text-sm text-green-700">
@@ -404,7 +444,7 @@ const Producer = () => {
         </div>
       </div>
 
-      {/* ✅ Floating Live Feed */}
+      {/* --- FLOATING LIVE FEED (Restored) --- */}
       {iotData && (
         <div className="fixed bottom-6 right-6 bg-white/90 backdrop-blur-lg border border-emerald-200 shadow-2xl rounded-xl p-4 w-64">
           <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
