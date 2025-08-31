@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -7,111 +6,92 @@ import {
   ArrowLeft,
   PlusCircle,
   Droplets,
-  DollarSign,
-  Star,
-  FileText,
-  Loader2,
+  IndianRupee, // Changed from DollarSign
   Send,
 } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 const CreateSellRequest = () => {
   const [formData, setFormData] = useState({
     hydrogenQty: "",
     price: "",
-    score: "",
-    proofDoc: "", // This would typically be an IPFS CID
   });
-  const [availableAssets, setAvailableAssets] = useState({ gcx: 0, score: 0 });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loadingStats, setLoadingStats] = useState(true);
+  const [availableGcx, setAvailableGcx] = useState(0);
 
   const navigate = useNavigate();
-  const formRef = useRef(null);
 
+  // On component load, get the available balance from localStorage
   useEffect(() => {
-    // Fetch producer's available assets to sell
-    const fetchProducerStats = async () => {
-      try {
-        setLoadingStats(true);
-        const token = localStorage.getItem("token");
-        // This endpoint should return the producer's available credits and average score
-        const res = await axios.get(`${API_URL}/api/producer/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // Assuming API returns { totalScore: X, totalCoins: Y }
-        const stats = {
-          gcx: res.data.totalCoins,
-          score: res.data.totalScore / res.data.history.length || 0,
-        };
-        setAvailableAssets(stats);
-        // Pre-fill the score field
-        setFormData((prev) => ({ ...prev, score: stats.score.toFixed(2) }));
-      } catch (err) {
-        toast.error("Could not load your available assets.");
-        console.error(err);
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-    fetchProducerStats();
-  }, []);
-
-  // Entry animation for the form
-  useEffect(() => {
-    if (formRef.current) {
-      formRef.current.style.opacity = 0;
-      formRef.current.style.transform = "translateY(50px)";
-      setTimeout(() => {
-        formRef.current.style.transition =
-          "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)";
-        formRef.current.style.opacity = 1;
-        formRef.current.style.transform = "translateY(0)";
-      }, 200);
-    }
+    const balance = parseFloat(localStorage.getItem("gcxBalance")) || 0;
+    setAvailableGcx(balance);
   }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Allow only numbers and a single decimal for quantity and price
-    if (
-      (name === "hydrogenQty" || name === "price") &&
-      !/^\d*\.?\d*$/.test(value)
-    ) {
+    // Allow only numbers and a single decimal
+    if (!/^\d*\.?\d*$/.test(value)) {
       return;
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (parseFloat(formData.hydrogenQty) > availableAssets.gcx) {
-      toast.error("You cannot sell more GCX than you own.");
+
+    const qty = parseFloat(formData.hydrogenQty) || 0;
+    const price = parseFloat(formData.price) || 0;
+    const availableGcx = parseFloat(localStorage.getItem("gcxBalance")) || 0;
+
+    if (qty <= 0 || price <= 0) {
+      toast.error("Please enter a valid quantity and price.");
       return;
     }
 
-    setIsSubmitting(true);
-    const loadingToast = toast.loading("Publishing your sell request...");
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(`${API_URL}/api/producer/sell-requests`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      toast.success("Sell request published successfully!", {
-        id: loadingToast,
-      });
-      navigate("/dashboard"); // Redirect after success
-    } catch (err) {
-      const errorMsg = err.response?.data?.msg || "Failed to publish request.";
-      toast.error(errorMsg, { id: loadingToast });
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+    if (qty > availableGcx) {
+      toast.error("You cannot sell more GCX than you have available.");
+      return;
     }
+
+    // --- Create and save the full sell request for the marketplace ---
+    const newSellRequest = {
+      _id: new Date().toISOString() + Math.random(), // Unique ID
+      producerId: {
+        company: localStorage.getItem("user") || "Anonymous Producer",
+      },
+      hydrogenQty: qty,
+      price: price,
+      createdAt: new Date().toISOString(),
+    };
+    const sellRequests =
+      JSON.parse(localStorage.getItem("sellRequestsLog")) || [];
+    sellRequests.push(newSellRequest);
+    localStorage.setItem("sellRequestsLog", JSON.stringify(sellRequests));
+
+    // --- The rest of your existing logic remains the same ---
+
+    // 1. Update Balance
+    const newBalance = availableGcx - qty;
+    localStorage.setItem("gcxBalance", newBalance.toString());
+
+    // 2. Create and Save Transaction Log for history
+    const newTransaction = {
+      _id: new Date().toISOString() + Math.random(),
+      type: "debit",
+      reason: `Sell Request for ${qty.toLocaleString("en-IN")} GCX`,
+      createdAt: new Date().toISOString(),
+      greenCoins: qty,
+      txnHash:
+        "0x" +
+        [...Array(40)]
+          .map(() => Math.floor(Math.random() * 16).toString(16))
+          .join(""),
+    };
+    const transactions =
+      JSON.parse(localStorage.getItem("gcxTransactions")) || [];
+    transactions.push(newTransaction);
+    localStorage.setItem("gcxTransactions", JSON.stringify(transactions));
+
+    toast.success("Sell request published successfully!");
+    navigate("/dashboard");
   };
 
   const totalValue =
@@ -144,7 +124,6 @@ const CreateSellRequest = () => {
         </header>
 
         <motion.div
-          ref={formRef}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -159,8 +138,7 @@ const CreateSellRequest = () => {
               >
                 <span>Quantity to Sell (kg/GCX)</span>
                 <span className="text-xs font-normal text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                  Available:{" "}
-                  {loadingStats ? "..." : availableAssets.gcx.toLocaleString()}
+                  Available: {availableGcx.toLocaleString()}
                 </span>
               </label>
               <div className="relative group">
@@ -178,16 +156,16 @@ const CreateSellRequest = () => {
               </div>
             </div>
 
-            {/* Price Input */}
+            {/* Price Input (Updated for INR) */}
             <div className="space-y-2">
               <label
                 htmlFor="price"
                 className="text-sm font-semibold text-gray-700"
               >
-                Price per Unit ($)
+                Price per Unit (₹)
               </label>
               <div className="relative group">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
                 <input
                   id="price"
                   name="price"
@@ -196,63 +174,19 @@ const CreateSellRequest = () => {
                   onChange={handleInputChange}
                   required
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
-                  placeholder="e.g., 3.50"
+                  placeholder="e.g., 250"
                 />
               </div>
             </div>
 
-            {/* Score and Proof Doc Side-by-Side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label
-                  htmlFor="score"
-                  className="text-sm font-semibold text-gray-700"
-                >
-                  Associated Score
-                </label>
-                <div className="relative group">
-                  <Star className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    id="score"
-                    name="score"
-                    type="text"
-                    value={formData.score}
-                    readOnly
-                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-100 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="proofDoc"
-                  className="text-sm font-semibold text-gray-700"
-                >
-                  Proof Document (IPFS CID)
-                </label>
-                <div className="relative group">
-                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                  <input
-                    id="proofDoc"
-                    name="proofDoc"
-                    type="text"
-                    value={formData.proofDoc}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
-                    placeholder="ipfs://..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Total Value Display */}
+            {/* Total Value Display (Updated for INR) */}
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
               <span className="text-lg font-semibold text-emerald-800">
                 Total Listing Value
               </span>
               <span className="text-2xl font-bold text-emerald-600">
-                $
-                {totalValue.toLocaleString(undefined, {
+                ₹
+                {totalValue.toLocaleString("en-IN", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -262,17 +196,10 @@ const CreateSellRequest = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full mt-2 py-4 flex items-center justify-center space-x-3 bg-emerald-500 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl hover:bg-emerald-600 transition-all duration-300 transform hover:scale-105 disabled:bg-gray-400 disabled:scale-100 disabled:cursor-not-allowed"
+              className="w-full mt-2 py-4 flex items-center justify-center space-x-3 bg-emerald-500 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl hover:bg-emerald-600 transition-all duration-300 transform hover:scale-105"
             >
-              {isSubmitting ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <Send className="w-6 h-6" />
-              )}
-              <span>
-                {isSubmitting ? "Publishing..." : "Publish Sell Request"}
-              </span>
+              <Send className="w-6 h-6" />
+              <span>Publish Sell Request</span>
             </button>
           </form>
         </motion.div>

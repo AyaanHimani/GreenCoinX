@@ -20,7 +20,6 @@ import {
   Wallet,
   TrendingUp,
   Activity,
-  Send,
   Wifi,
   WifiOff,
   Menu,
@@ -52,6 +51,7 @@ const Producer = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("gcxBalance"); // Clear balance on logout
     window.location.reload();
   };
 
@@ -90,7 +90,6 @@ const Producer = () => {
             purity: parseFloat(newData.purity),
             renewableShare: parseFloat(newData.renewableShare),
             powerConsumption: parseFloat(newData.powerConsumption),
-            powerFromRenewable: parseFloat(newData.powerFromRenewable),
           },
         ];
         return updated.slice(-20);
@@ -98,23 +97,6 @@ const Producer = () => {
     });
 
     return () => socket.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const producerName = localStorage.getItem("user");
-        const res = await axios.get(
-          `${API_URL}/api/transactions/producer/${producerName}/summary`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setWalletBalance({ gcx: res.data.totalGreenCoins || 0 });
-      } catch (err) {
-        console.error("Error fetching GCX summary:", err);
-      }
-    };
-    fetchSummary();
   }, []);
 
   useEffect(() => {
@@ -127,15 +109,40 @@ const Producer = () => {
   }, [chartData]);
 
   const handleSubmitBatch = async () => {
-    if (!iotData) return;
+    if (!iotData || chartData.length === 0) return;
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        `${API_URL}/api/producer/submit`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const batchAmount = parseFloat(avgHydrogen);
+
+      // 1. Update Balance
+      const currentBalance =
+        parseFloat(localStorage.getItem("gcxBalance")) || 0;
+      const newBalance = currentBalance + batchAmount;
+      localStorage.setItem("gcxBalance", newBalance.toString());
+      setWalletBalance({ gcx: newBalance });
+
+      // 2. Create and Save Transaction Log
+      const newTransaction = {
+        _id: new Date().toISOString() + Math.random(), // Unique ID
+        type: "credit",
+        reason: "Batch Production Submitted",
+        createdAt: new Date().toISOString(),
+        greenCoins: batchAmount,
+        txnHash:
+          "0x" +
+          [...Array(40)]
+            .map(() => Math.floor(Math.random() * 16).toString(16))
+            .join(""),
+      };
+      const transactions =
+        JSON.parse(localStorage.getItem("gcxTransactions")) || [];
+      transactions.push(newTransaction);
+      localStorage.setItem("gcxTransactions", JSON.stringify(transactions));
+
+      // Your existing API call can remain
+      // await axios.post(...)
+
       setLastSubmission(new Date());
       setChartData([]);
       navigate("/create-sell");
@@ -145,6 +152,28 @@ const Producer = () => {
       setIsSubmitting(false);
     }
   };
+
+  // --- NEW CODE TO SYNC WALLET BALANCE ---
+  useEffect(() => {
+    // 1. Set initial balance on component load
+    const localBalance = parseFloat(localStorage.getItem("gcxBalance")) || 0;
+    setWalletBalance({ gcx: localBalance });
+
+    // 2. Listen for changes from other tabs/windows
+    const handleStorageChange = (event) => {
+      if (event.key === "gcxBalance") {
+        const newBalance = parseFloat(event.newValue) || 0;
+        setWalletBalance({ gcx: newBalance });
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // 3. Cleanup listener when component unmounts
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const metrics = [
     {
@@ -203,7 +232,7 @@ const Producer = () => {
     {
       label: "Transaction Logs",
       icon: FileText,
-      action: () => navigate("/transaction"),
+      action: () => navigate("/prod-transaction"),
     },
     {
       label: "Confirm Buys",
@@ -219,7 +248,6 @@ const Producer = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
-      {/* --- NAVIGATION (Restored) --- */}
       <nav className="bg-white/80 backdrop-blur-lg border-b border-emerald-100 shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -316,7 +344,6 @@ const Producer = () => {
         )}
       </nav>
 
-      {/* --- MAIN DASHBOARD --- */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-6">
           <div
@@ -345,8 +372,10 @@ const Producer = () => {
                 key={metric.key}
                 className={`bg-gradient-to-br ${
                   metric.bgColor
-                } rounded-2xl p-6 border shadow-lg hover:scale-105 cursor-pointer ${
-                  activeMetric === metric.key ? "ring-2 ring-emerald-500" : ""
+                } rounded-2xl p-6 border shadow-lg transition-transform duration-300 hover:scale-105 cursor-pointer ${
+                  activeMetric === metric.key
+                    ? "ring-2 ring-emerald-500 scale-105"
+                    : "ring-transparent"
                 }`}
                 onClick={() => setActiveMetric(metric.key)}
               >
@@ -371,7 +400,6 @@ const Producer = () => {
           })}
         </div>
 
-        {/* --- GRAPH/CHART SECTION (Restored) --- */}
         <section className="bg-white/80 backdrop-blur-lg rounded-2xl border border-emerald-100 shadow-xl p-6 mb-8">
           <h3 className="text-lg font-bold text-gray-800 mb-4">
             Live Performance:{" "}
@@ -420,7 +448,6 @@ const Producer = () => {
           )}
         </section>
 
-        {/* --- BATCH OPERATIONS (Restored) --- */}
         <div className="bg-white/80 rounded-2xl p-6 border shadow-xl">
           <h3 className="text-lg font-bold text-gray-800 mb-4">
             Batch Operations
@@ -435,18 +462,17 @@ const Producer = () => {
           <div className="space-y-4">
             <button
               onClick={handleSubmitBatch}
-              disabled={!iotData || isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:scale-105 disabled:opacity-50 flex items-center justify-center space-x-2"
+              disabled={!iotData || chartData.length === 0 || isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 disabled:opacity-50 disabled:scale-100 flex items-center justify-center space-x-2"
             >
-              {isSubmitting ? "Submitting..." : "Submit Batch"}
+              {isSubmitting ? "Submitting..." : "Submit Batch & Get GCX"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* --- FLOATING LIVE FEED (Restored) --- */}
       {iotData && (
-        <div className="fixed bottom-6 right-6 bg-white/90 backdrop-blur-lg border border-emerald-200 shadow-2xl rounded-xl p-4 w-64">
+        <div className="fixed bottom-6 right-6 bg-white/90 backdrop-blur-lg border border-emerald-200 shadow-2xl rounded-xl p-4 w-64 hidden md:block">
           <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
             <Activity className="w-4 h-4 text-emerald-600 animate-pulse" />
             <span>Live Feed</span>

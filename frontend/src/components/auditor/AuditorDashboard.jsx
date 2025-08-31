@@ -256,8 +256,13 @@ const CompanyList = ({
   );
 
   const handleLogout = () => {
-    // Replace this with your actual logout logic
-    alert("Logout button clicked!");
+    // Clear stored auth details
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("role");
+
+    // Reload the page
+    window.location.reload();
   };
 
   return (

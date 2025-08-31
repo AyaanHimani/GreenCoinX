@@ -91,6 +91,14 @@ function App() {
             }
           />
           <Route
+            path="/prod-transaction"
+            element={
+              <ProtectedRoute>
+                <TransactionLog />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/confirm-buys"
             element={
               <ProtectedRoute>

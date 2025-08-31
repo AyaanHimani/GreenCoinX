@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -11,47 +10,42 @@ import {
   Check,
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const TransactionLog = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // Keep for potential future use
   const [copiedHash, setCopiedHash] = useState(null);
 
   const navigate = useNavigate();
   const headerRef = useRef(null);
   const listRef = useRef(null);
 
-  // Fetch GreenCoin transaction logs
+  // Fetch transaction logs from Local Storage
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const producerName = localStorage.getItem("user"); // stored in LS
-        const res = await axios.get(
-          `${API_URL}/api/transactions/producer/${producerName}`,
-          config
-        );
-        setTransactions(res.data || []); // expect an array
-      } catch (err) {
-        setError("Failed to fetch transaction history. Please try again later.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [navigate]);
+    try {
+      setLoading(true);
+      const storedTransactions = localStorage.getItem("gcxTransactions");
+      const parsedTransactions = storedTransactions
+        ? JSON.parse(storedTransactions)
+        : [];
+      // Sort by date, newest first
+      parsedTransactions.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setTransactions(parsedTransactions);
+    } catch (err) {
+      setError(
+        "Failed to read transaction history from local storage. It might be corrupted."
+      );
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Animation
+  // Animation (no changes)
   useEffect(() => {
+    if (loading) return;
     if (headerRef.current) {
       headerRef.current.style.opacity = 0;
       headerRef.current.style.transform = "translateY(-20px)";
@@ -82,7 +76,7 @@ const TransactionLog = () => {
   };
 
   const renderTransaction = (txn) => {
-    const isCredit = txn.type === "credit"; // credit = minted/added, debit = spent
+    const isCredit = txn.type === "credit";
     const Icon = isCredit ? TrendingUp : TrendingDown;
     const colorClass = isCredit ? "text-green-600" : "text-red-600";
     const bgClass = isCredit ? "bg-green-100" : "bg-red-100";
@@ -93,7 +87,6 @@ const TransactionLog = () => {
         key={txn._id}
         className="bg-white/80 backdrop-blur-lg border border-emerald-100 rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center sm:space-x-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300"
       >
-        {/* Icon */}
         <div className="flex items-center space-x-4 sm:flex-shrink-0">
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center ${bgClass} flex-shrink-0`}
@@ -101,12 +94,12 @@ const TransactionLog = () => {
             <Icon className={`w-6 h-6 ${colorClass}`} />
           </div>
         </div>
-
-        {/* Details */}
         <div className="flex-grow mt-3 sm:mt-0">
-          <p className="font-semibold text-gray-800">{txn.reason || "GreenCoin Txn"}</p>
+          <p className="font-semibold text-gray-800">
+            {txn.reason || "GreenCoin Txn"}
+          </p>
           <p className="text-sm text-gray-500">
-            {new Date(txn.createdAt).toLocaleString("en-US", {
+            {new Date(txn.createdAt).toLocaleString("en-IN", {
               year: "numeric",
               month: "short",
               day: "numeric",
@@ -115,12 +108,10 @@ const TransactionLog = () => {
             })}
           </p>
         </div>
-
-        {/* Amount + Hash */}
         <div className="flex flex-col items-end space-y-1 mt-3 sm:mt-0 text-right">
           <p className={`text-lg font-bold ${colorClass}`}>
             {pointPrefix}
-            {(txn.greenCoins || 0).toLocaleString()} GCX
+            {(txn.greenCoins || 0).toLocaleString("en-IN")} GCX
           </p>
           {txn.txnHash && (
             <div className="flex items-center space-x-2 font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded text-xs">
@@ -180,7 +171,6 @@ const TransactionLog = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <header
           ref={headerRef}
           className="flex items-center justify-between mb-8"
@@ -193,7 +183,7 @@ const TransactionLog = () => {
               <h1 className="text-3xl font-bold text-gray-800">
                 GreenCoin Transactions
               </h1>
-              <p className="text-gray-600">Like your bank statement</p>
+              <p className="text-gray-600">Your simulated transaction log</p>
             </div>
           </div>
           <button
@@ -205,7 +195,6 @@ const TransactionLog = () => {
           </button>
         </header>
 
-        {/* Content */}
         <main>{renderContent()}</main>
       </div>
     </div>

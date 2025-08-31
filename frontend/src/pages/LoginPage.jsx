@@ -26,7 +26,7 @@ const LoginPage = () => {
         navigate("/prod-dashboard", { replace: true });
         break;
       case "buyer":
-        navigate("/buyer-dashboard", { replace: true });
+        navigate("/marketplace", { replace: true });
         break;
       case "auditor":
         navigate("/auditor-dashboard", { replace: true });
